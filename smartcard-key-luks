@@ -2,7 +2,6 @@
 
 # Copyright (c) 2019 Purism SPC
 
-PUBKEY=$1
 TMPDIR=`mktemp --tmpdir=/dev/shm --directory`
 TMPKEY="${TMPDIR}/tmpkey"
 GNUPGHOME="${TMPDIR}"
@@ -12,9 +11,9 @@ ROOT_DEV_FULL=""
 
 . /lib/cryptsetup/functions
 
-if [ ! -e "$PUBKEY" ]; then
-  echo "ERROR: This script requires a GPG public key to encrypt your LUKS secret against"
-  echo "Usage: $0 <gpg_public_key.asc>"
+if [ $# -lt 1 ]; then
+  echo "ERROR: This script requires at least one GPG public key to encrypt your LUKS secret against"
+  echo "Usage: $0 <first_gpg_public_key.asc> <second_gpg_public_key.asc> ..."
   exit 1
 fi
 
@@ -72,10 +71,14 @@ if [ $? -ne 0 ]; then
   gpg --homedir ${GNUPGHOME} --card-status || exit 1
 fi
 
-gpg --homedir ${GNUPGHOME} --import $PUBKEY
+for PUBKEY in $@
+do
+  gpg --homedir ${GNUPGHOME} --import $PUBKEY
+done
 gpg --homedir ${GNUPGHOME} --export --export-options export-minimal > ${CRYPTHOME}/pubring.gpg
 GPG_RECIPIENT=`gpg --homedir="$GNUPGHOME" --with-colons --list-keys \
-    | sed -nr 's/^pub(:[^:]*){3}:([0-9a-fA-F]+)(:[^:]*){6}:[^:]*[eE].*/-r \2/p'`
+    | sed -nr 's/^pub(:[^:]*){3}:([0-9a-fA-F]+)(:[^:]*){6}:[^:]*[eE].*/-r \2/p' \
+    | tr '\n' ' '`
 
 if [ "$GPG_RECIPIENT" = "" ]; then
   echo "ERROR: No GPG keys found in keyring"

@@ -1,6 +1,8 @@
 # smartcard-key-luks
 
-OpenPGP smartcard setup with Linux boot.
+OpenPGP smartcard setup with Linux boot. This is a modified version of the Luks GPG encryption configuration Script from Purism (https://source.puri.sm/pureos/packages/smartcard-key-luks).
+
+This version allows to boot an encrypted LUKS partition with multiple OpenPGP smartcards.
 
 ## Description
 
